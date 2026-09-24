@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TEST 3 — Reading</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b0b0d;color:#f5f5f7;font-family:Arial,Helvetica,sans-serif}
+.top{position:sticky;top:0;z-index:10;background:#0b0b0df5;padding:18px 5vw 12px;backdrop-filter:blur(12px)}
+.title{text-align:center;font-weight:700;font-size:18px}.sub{text-align:center;color:#aaa;font-size:13px;margin-top:5px}
+.progress{display:flex;gap:4px;max-width:1000px;margin:18px auto 0}.seg{height:6px;flex:1;border-radius:5px;background:#242428}.seg.done{background:#777}.seg.active{background:#aaa}
+.wrap{max-width:900px;margin:auto;padding:42px 20px 100px}.card{display:none}.card.active{display:block}
+.type{font-size:14px;color:#a8a8ad;margin-bottom:16px}.q{font-size:25px;line-height:1.5;margin-bottom:25px}
+.opt{background:#17171a;border-radius:17px;padding:17px 20px;margin:10px 0;border:1px solid transparent;cursor:pointer;line-height:1.45}
+.opt:hover{background:#1e1e22}.opt.selected{border-color:#777}
+.opt.correct{background:#17351e;border-color:#62d57a}.opt.wrong{background:#3a171c;border-color:#ff6675}
+.letter{display:inline-block;width:30px;font-weight:700}
+.feedback{display:none;margin-top:16px;padding:15px 17px;border-radius:13px;font-size:16px;line-height:1.5}
+.feedback.ok{display:block;background:#15351d}.feedback.bad{display:block;background:#3b171c}
+.answer{font-weight:700}
+input.text{width:100%;max-width:650px;background:#17171a;color:#fff;border:1px solid #666;border-radius:12px;padding:15px;font-size:19px;outline:none}
+input.text:focus{border-color:#aaa}
+
+.nav{position:fixed;bottom:0;left:0;right:0;background:#0b0b0df5;padding:12px 5vw;display:flex;justify-content:center;gap:12px;z-index:10;backdrop-filter:blur(12px)}
+button.navbtn{border:0;border-radius:12px;padding:12px 23px;font-size:16px;cursor:pointer}.back{background:#222;color:#ddd}.reviewBtnMain{background:#222;border:1px solid #555;color:#fff}.next{background:#315be8;color:#fff}
+.score{display:none;text-align:center;font-size:16px;color:#bbb}
+select{background:#17171a;color:#fff;border:1px solid #666;border-radius:10px;padding:12px;font-size:17px}
+.small{color:#999;font-size:13px}
+@media(max-width:600px){.q{font-size:21px}.opt{padding:15px}.wrap{padding-top:30px}}
+
+
+.completePanel{display:none;max-width:900px;margin:0 auto;padding:70px 28px 80px;text-align:center}
+.completePanel.show{display:block}
+.completedLabel{font-size:24px;color:#aaa;letter-spacing:.2px;margin-bottom:38px}
+.completePanel h1{font-size:56px;margin:0 0 34px;font-weight:800}
+.bigScore{font-size:54px;font-weight:800;margin-bottom:22px}
+.scoreDetail{font-size:24px;color:#aaa;margin-bottom:58px}
+.reviewMain{border:0;border-radius:18px;background:#29282c;color:#fff;padding:18px 46px;font-size:22px;cursor:pointer;margin-bottom:64px}
+.reviewTitle{font-size:32px;font-weight:600;margin-bottom:12px}
+.reviewHint{font-size:18px;color:#aaa;margin-bottom:28px}
+.legend{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;color:#aaa;font-size:17px;margin-bottom:30px}
+.dot{display:inline-block;width:20px;height:20px;border-radius:50%;vertical-align:-3px;margin-right:7px}
+.correctDot{background:#18c76f}.wrongDot{background:#e43c55}.skippedDot{background:#555}
+.reviewGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;max-width:760px;margin:0 auto}
+.reviewBtn{border:0;background:#333;color:#fff;border-radius:15px;padding:22px 8px;font-size:18px;font-weight:600;cursor:pointer;min-height:72px}
+.reviewBtn.correct{background:#18c76f}
+.reviewBtn.wrong{background:#e43c55}
+.reviewBtn.unanswered{background:#333}
+@media(max-width:600px){
+  .completePanel{padding:55px 18px 70px}
+  .completePanel h1{font-size:48px}
+  .bigScore{font-size:48px}
+  .scoreDetail{font-size:20px}
+  .reviewTitle{font-size:28px}
+  .reviewHint{font-size:16px}
+  .reviewGrid{grid-template-columns:repeat(5,1fr);gap:8px}
+  .reviewBtn{padding:16px 4px;min-height:60px;font-size:16px;border-radius:12px}
+}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="title">TEST 3 — READING</div>
+  <div class="sub" id="counter">Question 1 / 40</div>
+  <div class="progress" id="progress"></div>
+</div>
+
+<div class="wrap" id="quiz"></div>
+
+<div class="nav" id="nav">
+  <button class="navbtn back" id="back">Back</button>
+  <button class="navbtn next" id="next">Next</button>
+  <div class="score" id="score"></div>
+</div>
+
+<div id="completePanel" class="completePanel">
+  <div class="completedLabel">TEST 3 • COMPLETED</div>
+  <h1>Score</h1>
+  <div class="bigScore" id="bigScore">0/40</div>
+  <div class="scoreDetail" id="scoreDetail"></div>
+  <button class="reviewMain" id="reviewMain" type="button">Review</button>
+
+  <div class="reviewTitle">Review questions</div>
+  <div class="reviewHint">Tap a number to jump straight to that question.</div>
+  <div class="legend">
+    <span><i class="dot correctDot"></i> Correct</span>
+    <span><i class="dot wrongDot"></i> Incorrect</span>
+    <span><i class="dot skippedDot"></i> Skipped</span>
+  </div>
+  <div id="reviewGrid" class="reviewGrid"></div>
+</div>
+<script>
+const qs = [
+/* 1-6 */
+{n:1,type:"Questions 1–6 • ONE WORD ONLY",q:"The online map provides users with a store’s name, ______ and details of its produce.",ans:["location"],text:true},
+{n:2,type:"Questions 1–6 • ONE WORD ONLY",q:"One goal of the mapping project is to help develop new ______ on food.",ans:["policies"],text:true},
+{n:3,type:"Questions 1–6 • ONE WORD ONLY",q:"Citizen maps are sometimes made when ______ maps are unsatisfactory.",ans:["government"],text:true},
+{n:4,type:"Questions 1–6 • ONE WORD ONLY",q:"New research suggests that people living in food deserts often have low ______.",ans:["incomes"],text:true},
+{n:5,type:"Questions 1–6 • ONE WORD ONLY",q:"Some supermarkets are unable to buy enough ______ inside cities for their stores.",ans:["land"],text:true},
+{n:6,type:"Questions 1–6 • ONE WORD ONLY",q:"Small grocery stores in cities often cannot cope with supermarket ______.",ans:["suburban"],text:true},
+
+/* 7-13 */
+{n:7,type:"Questions 7–13 • TRUE / FALSE / NOT GIVEN",q:"A group of professional researchers are in charge of the Brooklyn project.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["FALSE"]},
+{n:8,type:"Questions 7–13 • TRUE / FALSE / NOT GIVEN",q:"The Brooklyn project team carries out their assessment of stores without the owner’s knowledge.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["TRUE"]},
+{n:9,type:"Questions 7–13 • TRUE / FALSE / NOT GIVEN",q:"The Brooklyn project has experienced technical difficulties setting up the website.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["NOT GIVEN"]},
+{n:10,type:"Questions 7–13 • TRUE / FALSE / NOT GIVEN",q:"The city government has taken a considerable interest in the Brooklyn project website.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["FALSE"]},
+{n:11,type:"Questions 7–13 • TRUE / FALSE / NOT GIVEN",q:"Michele Ver Ploeg believes the Brooklyn project website should contain additional information.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["TRUE"]},
+{n:12,type:"Questions 7–13 • TRUE / FALSE / NOT GIVEN",q:"The rate of internet use in Brooklyn is unlikely to increase in the near future.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["NOT GIVEN"]},
+{n:13,type:"Questions 7–13 • TRUE / FALSE / NOT GIVEN",q:"Jeffrey Heehs would like more people to assist with the Brooklyn project research.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["TRUE"]},
+
+/* 14-19 */
+{n:14,type:"Questions 14–19 • MATCHING HEADINGS",q:"Paragraph A",opts:["i. Action already taken by the United Nations","ii. Marketing the hydrogen car","iii. Making the new technology available worldwide","iv. Some negative predictions from one group of experts","v. How the new vehicle technology works","vi. The history of fuel-cell technology","vii. A holistic view of climatic change","viii. Locating the essential ingredient","ix. Sustaining car manufacture"],ans:["vii"]},
+{n:15,type:"Questions 14–19 • MATCHING HEADINGS",q:"Paragraph B",opts:["i. Action already taken by the United Nations","ii. Marketing the hydrogen car","iii. Making the new technology available worldwide","iv. Some negative predictions from one group of experts","v. How the new vehicle technology works","vi. The history of fuel-cell technology","vii. A holistic view of climatic change","viii. Locating the essential ingredient","ix. Sustaining car manufacture"],ans:["iv"]},
+{n:16,type:"Questions 14–19 • MATCHING HEADINGS",q:"Paragraph C",opts:["i. Action already taken by the United Nations","ii. Marketing the hydrogen car","iii. Making the new technology available worldwide","iv. Some negative predictions from one group of experts","v. How the new vehicle technology works","vi. The history of fuel-cell technology","vii. A holistic view of climatic change","viii. Locating the essential ingredient","ix. Sustaining car manufacture"],ans:["vi"]},
+{n:17,type:"Questions 14–19 • MATCHING HEADINGS",q:"Paragraph D",opts:["i. Action already taken by the United Nations","ii. Marketing the hydrogen car","iii. Making the new technology available worldwide","iv. Some negative predictions from one group of experts","v. How the new vehicle technology works","vi. The history of fuel-cell technology","vii. A holistic view of climatic change","viii. Locating the essential ingredient","ix. Sustaining car manufacture"],ans:["v"]},
+{n:18,type:"Questions 14–19 • MATCHING HEADINGS",q:"Paragraph E",opts:["i. Action already taken by the United Nations","ii. Marketing the hydrogen car","iii. Making the new technology available worldwide","iv. Some negative predictions from one group of experts","v. How the new vehicle technology works","vi. The history of fuel-cell technology","vii. A holistic view of climatic change","viii. Locating the essential ingredient","ix. Sustaining car manufacture"],ans:["viii"]},
+{n:19,type:"Questions 14–19 • MATCHING HEADINGS",q:"Paragraph F",opts:["i. Action already taken by the United Nations","ii. Marketing the hydrogen car","iii. Making the new technology available worldwide","iv. Some negative predictions from one group of experts","v. How the new vehicle technology works","vi. The history of fuel-cell technology","vii. A holistic view of climatic change","viii. Locating the essential ingredient","ix. Sustaining car manufacture"],ans:["iii"]},
+
+/* 20-23 */
+{n:20,type:"Questions 20–23 • NO MORE THAN TWO WORDS",q:"In the late nineteenth century, the car industry invested in the development of the ______, rather than fuel-cell technology.",ans:["combustion engine"],text:true},
+{n:21,type:"Questions 20–23 • NO MORE THAN TWO WORDS",q:"Ford engineers predict that they will eventually design an almost ______ car.",ans:["silent"],text:true},
+{n:22,type:"Questions 20–23 • NO MORE THAN TWO WORDS",q:"While a fuel-cell lasts longer, some aspects of it are comparable to a ______.",ans:["battery"],text:true},
+{n:23,type:"Questions 20–23 • NO MORE THAN TWO WORDS",q:"Fuel-cells can come in many sizes and can be used in power stations and in ______ as well as in vehicles.",ans:["portable computers"],text:true},
+
+/* 24-27 */
+{n:24,type:"Questions 24–27 • TRUE / FALSE / NOT GIVEN",q:"Using electricity produced by burning fossil fuels to access sources of hydrogen may increase the positive effect of the fuel-cell.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["FALSE"]},
+{n:25,type:"Questions 24–27 • TRUE / FALSE / NOT GIVEN",q:"The oil company Statoil in Norway owns gas wells in other parts of the world.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["NOT GIVEN"]},
+{n:26,type:"Questions 24–27 • TRUE / FALSE / NOT GIVEN",q:"Public transport is leading the way in the application of fuel-cell technology.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["TRUE"]},
+{n:27,type:"Questions 24–27 • TRUE / FALSE / NOT GIVEN",q:"More funding is necessary to ensure the success of the fuel-cell vehicle industry.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["TRUE"]},
+
+/* 28-34 */
+{n:28,type:"Questions 28–34 • TRUE / FALSE / NOT GIVEN",q:"In Australia, alternative energies are less expensive than conventional electricity.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["FALSE"]},
+{n:29,type:"Questions 28–34 • TRUE / FALSE / NOT GIVEN",q:"Geoenergy needs to adapt its system to make it less harmful to the environment.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["TRUE"]},
+{n:30,type:"Questions 28–34 • TRUE / FALSE / NOT GIVEN",q:"Dr Prue Chopra has studied the effects of radon gas on the environment.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["NOT GIVEN"]},
+{n:31,type:"Questions 28–34 • TRUE / FALSE / NOT GIVEN",q:"Hot, dry rocks could provide enough power for the whole of Australia.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["TRUE"]},
+{n:32,type:"Questions 28–34 • TRUE / FALSE / NOT GIVEN",q:"The new Enviropower facility will keep tourists away.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["FALSE"]},
+{n:33,type:"Questions 28–34 • TRUE / FALSE / NOT GIVEN",q:"Wavetech was established when its founders were turned down by another company.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["TRUE"]},
+{n:34,type:"Questions 28–34 • TRUE / FALSE / NOT GIVEN",q:"According to AEA, Australia is a world leader in developing renewable energy.",opts:["TRUE","FALSE","NOT GIVEN"],ans:["FALSE"]},
+
+/* 35-40 */
+{n:35,type:"Questions 35–40 • MATCHING COMPANIES",q:"During the process, harmful substances are prevented from escaping.",opts:["A. Australian Hydro","B. Geoenergy","C. Enviropower","D. Wavetech"],ans:["B"]},
+{n:36,type:"Questions 35–40 • MATCHING COMPANIES",q:"Water is used to force air through a special device.",opts:["A. Australian Hydro","B. Geoenergy","C. Enviropower","D. Wavetech"],ans:["D"]},
+{n:37,type:"Questions 35–40 • MATCHING COMPANIES",q:"Techniques used by other countries are being copied.",opts:["A. Australian Hydro","B. Geoenergy","C. Enviropower","D. Wavetech"],ans:["A"]},
+{n:38,type:"Questions 35–40 • MATCHING COMPANIES",q:"The system can provide services other than energy production.",opts:["A. Australian Hydro","B. Geoenergy","C. Enviropower","D. Wavetech"],ans:["C"]},
+{n:39,type:"Questions 35–40 • MATCHING COMPANIES",q:"It is planned to force water deep under the ground.",opts:["A. Australian Hydro","B. Geoenergy","C. Enviropower","D. Wavetech"],ans:["B"]},
+{n:40,type:"Questions 35–40 • MATCHING COMPANIES",q:"Original estimates for part of the project have been revised.",opts:["A. Australian Hydro","B. Geoenergy","C. Enviropower","D. Wavetech"],ans:["C"]}
+];
+
+let cur=0, score=0, answered=new Set(), results={}, completed=false;
+const quiz=document.getElementById("quiz");
+const progress=document.getElementById("progress");
+qs.forEach((x,i)=>{let s=document.createElement("div");s.className="seg";progress.appendChild(s)});
+
+function esc(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+qs.forEach((x,i)=>{
+  const card=document.createElement("div");card.className="card"+(i===0?" active":"");card.id="card"+x.n;
+  let body="";
+  if(x.text){
+    body=`<div class="small" style="margin-bottom:10px">Type your answer. It will be checked automatically when you finish typing or press Enter.</div>
+          <input class="text" id="input${x.n}" type="text" autocomplete="off" spellcheck="false" placeholder="Type your answer..."
+          onkeydown="if(event.key==='Enter'){event.preventDefault();checkText(${i});}"
+          onblur="checkText(${i})">`;
+  }else{
+    body=x.opts.map((o,j)=>`<div class="opt" data-q="${x.n}" data-value="${esc(o.split(". ")[0])}" onclick="choose(${i},this)">${esc(o)}</div>`).join("");
+  }
+  card.innerHTML=`<div class="type">${esc(x.type)}</div><div class="q">${esc(x.q)}</div>${body}<div class="feedback" id="fb${x.n}"></div>`;
+  quiz.appendChild(card);
+});
+
+function update(){
+  document.querySelectorAll(".card").forEach((c,i)=>c.classList.toggle("active",i===cur));
+  document.getElementById("counter").textContent=`Question ${qs[cur].n} / 40`;
+  [...progress.children].forEach((s,i)=>s.className="seg "+(i<cur?"done ":"")+(i===cur?"active":""));
+  document.getElementById("back").style.visibility=cur===0?"hidden":"visible";
+  document.getElementById("next").style.display="inline-block";
+  document.getElementById("next").textContent=cur===39?"Finish":"Next";
+  document.getElementById("score").style.display=answered.size?"block":"none";
+  document.getElementById("score").textContent=`Score: ${score}/${answered.size}`;
+  if(!completed) window.scrollTo({top:0,behavior:"smooth"});
+}
+function feedback(i,correct,user){
+  const x=qs[i], fb=document.getElementById("fb"+x.n);
+  if(correct){
+    score++;
+    fb.className="feedback ok";
+    fb.innerHTML=`✓ <b>Correct answer!</b><br>Your answer: <span class="answer">${esc(user)}</span>`;
+  }else{
+    fb.className="feedback bad";
+    fb.innerHTML=`✕ <b>Incorrect</b><br>Your answer: <span class="answer">${esc(user||"(no answer)")}</span><br>Correct answer: <span class="answer">${esc(x.ans[0])}</span>`;
+  }
+  answered.add(x.n);
+  results[x.n]={correct,user};
+  update();
+}
+function choose(i,el){
+  const x=qs[i]; if(answered.has(x.n)) return;
+  document.querySelectorAll(`[data-q="${x.n}"]`).forEach(o=>o.classList.remove("selected"));
+  el.classList.add("selected");
+  const user=el.dataset.value;
+  const correct=x.ans.includes(user);
+  document.querySelectorAll(`[data-q="${x.n}"]`).forEach(o=>{
+    if(x.ans.includes(o.dataset.value))o.classList.add("correct");
+    else if(o===el && !correct)o.classList.add("wrong");
+  });
+  feedback(i,correct,user);
+}
+function checkText(i){
+  const x=qs[i]; if(answered.has(x.n))return;
+  const inp=document.getElementById("input"+x.n), user=inp.value.trim();
+  if(!user)return;
+  const norm=s=>s.toLowerCase().trim().replace(/[.,!?]/g,"").replace(/\s+/g," ");
+  const correct=x.ans.some(a=>norm(a)===norm(user));
+  inp.style.borderColor=correct?"#62d57a":"#ff6675";
+  inp.readOnly=true;
+  feedback(i,correct,user);
+}
+
+function buildReview(){
+  const correctCount=Object.values(results).filter(r=>r.correct).length;
+  const wrongCount=Object.values(results).filter(r=>!r.correct).length;
+  const skipped=qs.length-answered.size;
+  document.getElementById("bigScore").textContent=`${correctCount}/40`;
+  document.getElementById("scoreDetail").textContent=`${skipped} skipped · ${wrongCount} incorrect`;
+  const grid=document.getElementById("reviewGrid");
+  grid.innerHTML="";
+  qs.forEach((x,i)=>{
+    const r=results[x.n];
+    const b=document.createElement("button");
+    b.type="button";
+    b.className="reviewBtn "+(r?(r.correct?"correct":"wrong"):"unanswered");
+    b.textContent=x.n;
+    b.title=r?(r.correct?"Correct":"Incorrect"):"Skipped";
+    b.onclick=()=>{
+      completed=false;
+      document.getElementById("completePanel").classList.remove("show");
+      document.getElementById("nav").style.display="";
+      document.getElementById("quiz").style.display="";
+      cur=i;
+      update();
+    };
+    grid.appendChild(b);
+  });
+}
+function finishTest(){
+  completed=true;
+  document.getElementById("quiz").style.display="none";
+  document.getElementById("nav").style.display="none";
+  document.querySelector(".top").classList.add("completedTop");
+  document.getElementById("completePanel").classList.add("show");
+  buildReview();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.getElementById("reviewMain").onclick=()=>buildReview();
+document.getElementById("back").onclick=()=>{if(cur>0){cur--;update()}};
+document.getElementById("next").onclick=()=>{if(cur<39){cur++;update()}else{finishTest()}};
+update();
+</script>
+</body>
+</html>
